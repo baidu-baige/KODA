@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">GPU Worker 两种隔离与回收方案</title>
+  <desc id="desc">两种GPU Worker模式都要求入场时没有计算进程，并为每条Execution启动新业务进程。重建模式每次执行后删除Pod；复用模式在进程和显存检查通过后复用Pod。</desc>
+  <defs>
+    <style>
+      .title{font:700 34px Inter,Arial,"Noto Sans SC",sans-serif;fill:#14213d}.sub{font:500 16px Inter,Arial,"Noto Sans SC",sans-serif;fill:#64748b}.head{font:700 19px Inter,Arial,"Noto Sans SC",sans-serif;fill:#172033}.text{font:500 15px Inter,Arial,"Noto Sans SC",sans-serif;fill:#334155}.small{font:500 13px Inter,Arial,"Noto Sans SC",sans-serif;fill:#64748b}.panel{fill:#fff;stroke:#d7e0ec;stroke-width:1.7}.blue{fill:#eff6ff;stroke:#5b91d1;stroke-width:1.8}.green{fill:#ecfdf5;stroke:#43a676;stroke-width:1.8}.purple{fill:#f5f3ff;stroke:#8b6ac6;stroke-width:1.8}.amber{fill:#fff8e8;stroke:#dca23c;stroke-width:1.8}.red{fill:#fff1f2;stroke:#dc6572;stroke-width:1.8}.gray{fill:#f8fafc;stroke:#cbd5e1;stroke-width:1.5}.arrow{stroke:#64748b;stroke-width:2.6;fill:none;marker-end:url(#arrow)}.pass{stroke:#2f9b68;stroke-width:2.7;fill:none;marker-end:url(#greenArrow)}.fail{stroke:#d95b69;stroke-width:2.7;fill:none;stroke-dasharray:8 6;marker-end:url(#redArrow)}
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#64748b"/></marker>
+    <marker id="greenArrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#2f9b68"/></marker>
+    <marker id="redArrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#d95b69"/></marker>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f5f7fb"/>
+  <text x="800" y="50" text-anchor="middle" class="title">GPU Worker 两种隔离与回收方案</text>
+  <text x="800" y="80" text-anchor="middle" class="sub">两种模式均执行：入场检查 · 每次执行前检查 · 每次执行后检查</text>
+
+  <rect x="545" y="115" width="510" height="95" rx="18" class="blue"/>
+  <text x="800" y="152" text-anchor="middle" class="head">GPU Execution / Worker UID</text>
+  <text x="800" y="181" text-anchor="middle" class="text">同一 GPU Pod 同时只执行一条 GPU 命令</text>
+
+  <path d="M800 210 V255 H425" class="arrow"/>
+  <path d="M800 210 V255 H1175" class="arrow"/>
+
+  <rect x="90" y="270" width="670" height="410" rx="24" class="panel"/>
+  <text x="425" y="312" text-anchor="middle" class="head">重建模式：执行后重建 GPU Pod</text>
+  <text x="425" y="342" text-anchor="middle" class="small">对应 direct 执行；不复用执行过业务命令的容器</text>
+  <rect x="155" y="380" width="540" height="80" rx="15" class="blue"/>
+  <text x="425" y="413" text-anchor="middle" class="text">pods/exec 启动新的业务进程</text>
+  <text x="425" y="440" text-anchor="middle" class="small">执行前 Check → 命令 → 执行后 Check；随后停止调度当前 Pod</text>
+  <rect x="155" y="500" width="240" height="105" rx="15" class="amber"/>
+  <text x="275" y="538" text-anchor="middle" class="head">删除当前 Pod</text>
+  <text x="275" y="570" text-anchor="middle" class="small">容器可写层一并销毁</text>
+  <rect x="455" y="500" width="240" height="105" rx="15" class="green"/>
+  <text x="575" y="538" text-anchor="middle" class="head">Deployment 补充</text>
+  <text x="575" y="570" text-anchor="middle" class="small">新 Pod 重新执行入场检查</text>
+  <path d="M425 460 V480 H275 V500" class="arrow"/>
+  <path d="M395 552 H455" class="arrow"/>
+  <text x="425" y="642" text-anchor="middle" class="small">优势：进程、CUDA Context 与文件状态边界清晰　代价：存在 Pod 调度开销</text>
+
+  <rect x="840" y="270" width="670" height="410" rx="24" class="panel"/>
+  <text x="1175" y="312" text-anchor="middle" class="head">复用模式：检查通过后复用 GPU Pod</text>
+  <text x="1175" y="342" text-anchor="middle" class="small">对应 sandboxd 执行；每条 Execution 使用新的业务进程组</text>
+  <rect x="905" y="380" width="540" height="80" rx="15" class="purple"/>
+  <text x="1175" y="413" text-anchor="middle" class="text">执行前 Check → sandboxd → 清理进程组 → 执行后 Check</text>
+  <text x="1175" y="440" text-anchor="middle" class="small">GPU Pool 每 200 ms 检查一次，最多等待 10 秒</text>
+  <rect x="905" y="500" width="240" height="105" rx="15" class="green"/>
+  <text x="1025" y="538" text-anchor="middle" class="head">检查通过</text>
+  <text x="1025" y="570" text-anchor="middle" class="small">process=0 · memory≤baseline</text>
+  <rect x="1205" y="500" width="240" height="105" rx="15" class="red"/>
+  <text x="1325" y="538" text-anchor="middle" class="head">检查失败</text>
+  <text x="1325" y="570" text-anchor="middle" class="small">保留结果 · 删除当前 Pod</text>
+  <path d="M1175 460 V480 H1025 V500" class="pass"/>
+  <path d="M1175 460 V480 H1325 V500" class="fail"/>
+  <text x="1175" y="642" text-anchor="middle" class="small">优势：减少 GPU 重调度　代价：不清理容器文件，依赖进程收割与复用检查</text>
+
+  <rect x="150" y="735" width="1300" height="95" rx="20" class="gray"/>
+  <text x="800" y="772" text-anchor="middle" class="head">共同失败处理</text>
+  <text x="800" y="806" text-anchor="middle" class="text">Pod 抢占或消失后重新排队；Master 删除残留 Pod，只接受当前 Worker UID 的结果。</text>
+
+  <text x="800" y="875" text-anchor="middle" class="small">物理 GPU 故障、Xid 和 quarantine 由节点侧 GPU 管理组件处理，不在 command_exec 路径执行 gpu-reset</text>
+</svg>

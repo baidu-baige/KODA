@@ -1,0 +1,15 @@
+apiVersion: apps/v1
+kind: Deployment
+spec:
+  template:
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: sandbox
+          image: placeholder
+          securityContext:
+            capabilities:
+              add: [SYS_ADMIN]
+          resources:
+            requests: {cpu: "2", memory: 8Gi, nvidia.com/gpu: "1"}
+            limits: {cpu: "8", memory: 32Gi, nvidia.com/gpu: "1"}

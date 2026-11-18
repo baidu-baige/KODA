@@ -1,0 +1,27 @@
+backend: kubernetes
+master_id: koda
+server:
+  listen_address: 0.0.0.0:18766
+  advertised_endpoint: http://YOUR_MASTER_HOST:18766
+cpu_cluster:
+  kubeconfig: YOUR_KUBECONFIG
+  namespace: YOUR_NAMESPACE
+  pod_template_file: ../templates/cpu-pod-template.yaml
+  pod_name_prefix: koda-cpu
+gpu_pool_clusters:
+  - name: gpu
+    kubeconfig: YOUR_KUBECONFIG
+    namespace: YOUR_NAMESPACE
+    deployment_template_file: ../templates/gpu-deployment-template.yaml
+    pool_name_prefix: koda-gpu
+    resource_names: [nvidia.com/gpu]
+sandboxd:
+  image: YOUR_REGISTRY/koda-sandboxd:VERSION
+execution:
+  max_attempts: 2
+  max_stdin_mb: 4
+  max_output_mb: 1
+gc:
+  interval_seconds: 60
+  session_idle_timeout_seconds: 5400
+  gpu_pool_idle_timeout_seconds: 5400

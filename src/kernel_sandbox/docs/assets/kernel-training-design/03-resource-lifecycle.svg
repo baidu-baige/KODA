@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">Kernel Sandbox 完整生命周期</title>
+  <desc id="desc">从部署配置、创建 GPU Pool、创建 Session、执行 CPU/GPU 命令，到删除 Session 和 GPU Pool 的完整链路。</desc>
+  <defs>
+    <style>
+      .title{font:700 34px Inter,Arial,"Noto Sans SC",sans-serif;fill:#14213d}.sub{font:500 16px Inter,Arial,"Noto Sans SC",sans-serif;fill:#64748b}.lane{font:700 20px Inter,Arial,"Noto Sans SC",sans-serif;fill:#172033}.head{font:700 16px Inter,Arial,"Noto Sans SC",sans-serif;fill:#172033}.text{font:500 13px Inter,Arial,"Noto Sans SC",sans-serif;fill:#334155}.small{font:500 12px Inter,Arial,"Noto Sans SC",sans-serif;fill:#64748b}.panel{fill:#fff;stroke:#d7e0ec;stroke-width:1.6}.blue{fill:#eff6ff;stroke:#5b91d1;stroke-width:1.7}.green{fill:#ecfdf5;stroke:#43a676;stroke-width:1.7}.purple{fill:#f5f3ff;stroke:#8b6ac6;stroke-width:1.7}.amber{fill:#fff8e8;stroke:#dca23c;stroke-width:1.7}.red{fill:#fff1f2;stroke:#dc6572;stroke-width:1.7}.gray{fill:#f8fafc;stroke:#cbd5e1;stroke-width:1.5}.arrow{stroke:#64748b;stroke-width:2.3;fill:none;marker-end:url(#arrow)}.greenArrow{stroke:#2f9b68;stroke-width:2.3;fill:none;marker-end:url(#greenArrow)}.redArrow{stroke:#d95b69;stroke-width:2.3;fill:none;marker-end:url(#redArrow)}.dash{stroke-dasharray:7 6}
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#64748b"/></marker>
+    <marker id="greenArrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#2f9b68"/></marker>
+    <marker id="redArrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#d95b69"/></marker>
+  </defs>
+
+  <rect width="1600" height="1000" fill="#f5f7fb"/>
+  <text x="800" y="48" text-anchor="middle" class="title">从环境创建到资源清理的完整链路</text>
+  <text x="800" y="77" text-anchor="middle" class="sub">示例部署：Master 使用 CPU 集群和 GPU 集群</text>
+
+  <rect x="40" y="105" width="330" height="835" rx="22" class="panel"/>
+  <rect x="395" y="105" width="390" height="835" rx="22" class="panel"/>
+  <rect x="810" y="105" width="340" height="835" rx="22" class="panel"/>
+  <rect x="1175" y="105" width="385" height="835" rx="22" class="panel"/>
+  <text x="205" y="142" text-anchor="middle" class="lane">Agent / Trainer</text>
+  <text x="590" y="142" text-anchor="middle" class="lane">kernel-sandbox-master</text>
+  <text x="980" y="142" text-anchor="middle" class="lane">CPU 集群</text>
+  <text x="1367" y="142" text-anchor="middle" class="lane">GPU 集群</text>
+
+  <rect x="445" y="170" width="290" height="90" rx="16" class="gray"/>
+  <text x="590" y="201" text-anchor="middle" class="head">读取 deploy/config.yaml</text>
+  <text x="590" y="226" text-anchor="middle" class="text">CPU/GPU kubeconfig · namespace</text>
+  <text x="590" y="247" text-anchor="middle" class="small">Pod 模板 · Master 地址 · Worker 模式</text>
+
+  <rect x="85" y="290" width="240" height="72" rx="14" class="purple"/>
+  <text x="205" y="320" text-anchor="middle" class="head">POST /v1/gpu_pool</text>
+  <text x="205" y="343" text-anchor="middle" class="small">image + replicas</text>
+  <path d="M325 326 H445" class="arrow"/>
+  <rect x="445" y="286" width="290" height="80" rx="14" class="purple"/>
+  <text x="590" y="317" text-anchor="middle" class="head">创建 GPU Deployment</text>
+  <text x="590" y="342" text-anchor="middle" class="small">使用 gpu-pod.yaml</text>
+  <path d="M735 326 H1215" class="arrow"/>
+  <rect x="1215" y="275" width="305" height="103" rx="15" class="amber"/>
+  <text x="1367" y="307" text-anchor="middle" class="head">Worker Pod pending</text>
+  <text x="1367" y="332" text-anchor="middle" class="text">Pod Ready → 入场 GPU Check</text>
+  <text x="1367" y="355" text-anchor="middle" class="small">process=0 · memory≤baseline → idle</text>
+
+  <rect x="85" y="405" width="240" height="72" rx="14" class="blue"/>
+  <text x="205" y="435" text-anchor="middle" class="head">POST /v1/session</text>
+  <text x="205" y="458" text-anchor="middle" class="small">gpu_only 或 cpu_gpu</text>
+  <path d="M325 441 H445" class="arrow"/>
+  <rect x="445" y="401" width="290" height="80" rx="14" class="blue"/>
+  <text x="590" y="432" text-anchor="middle" class="head">生成 session_id</text>
+  <text x="590" y="457" text-anchor="middle" class="small">gpu_only 直接 ready</text>
+  <path d="M735 441 H850" class="arrow"/>
+  <rect x="850" y="391" width="260" height="100" rx="15" class="blue"/>
+  <text x="980" y="422" text-anchor="middle" class="head">cpu_gpu：创建 CPU Pod</text>
+  <text x="980" y="447" text-anchor="middle" class="text">同一业务镜像 · 可写工作目录</text>
+  <text x="980" y="470" text-anchor="middle" class="small">Pod Ready → Session ready</text>
+
+  <rect x="85" y="530" width="240" height="90" rx="14" class="green"/>
+  <text x="205" y="561" text-anchor="middle" class="head">POST command_exec</text>
+  <text x="205" y="586" text-anchor="middle" class="text">device=cpu 或 gpu</text>
+  <text x="205" y="607" text-anchor="middle" class="small">同步等待 Execution 结果</text>
+  <path d="M325 575 H445" class="greenArrow"/>
+  <rect x="445" y="526" width="290" height="98" rx="15" class="green"/>
+  <text x="590" y="557" text-anchor="middle" class="head">创建 Execution</text>
+  <text x="590" y="582" text-anchor="middle" class="text">CPU 锁定 Session 槽位</text>
+  <text x="590" y="605" text-anchor="middle" class="text">GPU 进入 FIFO Queue</text>
+  <path d="M735 557 H850" class="arrow"/>
+  <rect x="850" y="525" width="260" height="66" rx="14" class="blue"/>
+  <text x="980" y="552" text-anchor="middle" class="head">CPU pods/exec</text>
+  <text x="980" y="576" text-anchor="middle" class="small">命令结束后释放 CPU 槽位</text>
+  <path d="M735 604 H1215" class="arrow"/>
+  <rect x="1215" y="515" width="305" height="125" rx="15" class="green"/>
+  <text x="1367" y="546" text-anchor="middle" class="head">GPU 每次执行前 Check</text>
+  <text x="1367" y="571" text-anchor="middle" class="text">clean → pods/exec 执行业务命令</text>
+  <text x="1367" y="596" text-anchor="middle" class="head">GPU 每次执行后 Check</text>
+  <text x="1367" y="620" text-anchor="middle" class="small">sandboxd 后检查：clean 后 idle，否则删除</text>
+
+  <path d="M1215 657 H735 V660 H325" class="greenArrow"/>
+  <rect x="85" y="640" width="240" height="72" rx="14" class="gray"/>
+  <text x="205" y="670" text-anchor="middle" class="head">返回 Execution Result</text>
+  <text x="205" y="693" text-anchor="middle" class="small">Agent 继续修改或结束任务</text>
+
+  <rect x="85" y="755" width="240" height="72" rx="14" class="red"/>
+  <text x="205" y="785" text-anchor="middle" class="head">DELETE /v1/session/id</text>
+  <text x="205" y="808" text-anchor="middle" class="small">任务结束，清理会话</text>
+  <path d="M325 791 H445" class="redArrow"/>
+  <rect x="445" y="747" width="290" height="88" rx="14" class="red"/>
+  <text x="590" y="778" text-anchor="middle" class="head">停止接收新命令</text>
+  <text x="590" y="803" text-anchor="middle" class="text">结束排队/执行中的 Execution</text>
+  <text x="590" y="824" text-anchor="middle" class="small">删除成功后移除 Session</text>
+  <path d="M735 775 H850" class="redArrow"/>
+  <rect x="850" y="745" width="260" height="70" rx="14" class="red"/>
+  <text x="980" y="774" text-anchor="middle" class="head">删除 CPU Session Pod</text>
+  <text x="980" y="797" text-anchor="middle" class="small">gpu_only 无此步骤</text>
+  <path d="M735 816 H1215" class="redArrow"/>
+  <rect x="1215" y="745" width="305" height="70" rx="14" class="red"/>
+  <text x="1367" y="774" text-anchor="middle" class="head">删除该 Session 占用的 Worker</text>
+  <text x="1367" y="797" text-anchor="middle" class="small">空闲共享 Worker 保留</text>
+
+  <rect x="85" y="865" width="240" height="55" rx="13" class="gray"/>
+  <text x="205" y="898" text-anchor="middle" class="head">可选：DELETE /v1/gpu_pool/{id}</text>
+  <path d="M325 892 H445" class="arrow"/>
+  <rect x="445" y="860" width="290" height="65" rx="13" class="gray"/>
+  <text x="590" y="889" text-anchor="middle" class="head">确认无 Session / Execution</text>
+  <text x="590" y="911" text-anchor="middle" class="small">删除 GPU Deployment</text>
+  <path d="M735 892 H1215" class="arrow"/>
+  <rect x="1215" y="860" width="305" height="65" rx="13" class="gray"/>
+  <text x="1367" y="889" text-anchor="middle" class="head">Worker Pod 全部退出</text>
+  <text x="1367" y="911" text-anchor="middle" class="small">GPU 环境完成清理</text>
+</svg>

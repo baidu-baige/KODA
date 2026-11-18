@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Loop 与 ReAct Agent 调用路径</title>
+  <desc id="desc">Loop与ReAct Agent都直接访问Kernel Sandbox Master。Loop提交GPU命令，ReAct先执行CPU命令，再由CPU项目脚本向同一Master提交自包含GPU命令。</desc>
+  <defs>
+    <style>
+      .title{font:700 34px Inter,Arial,"Noto Sans SC",sans-serif;fill:#14213d}.sub{font:500 16px Inter,Arial,"Noto Sans SC",sans-serif;fill:#64748b}.head{font:700 19px Inter,Arial,"Noto Sans SC",sans-serif;fill:#172033}.text{font:500 15px Inter,Arial,"Noto Sans SC",sans-serif;fill:#334155}.small{font:500 13px Inter,Arial,"Noto Sans SC",sans-serif;fill:#64748b}.lane{fill:#fff;stroke:#d7e0ec;stroke-width:1.7}.blue{fill:#eff6ff;stroke:#5b91d1;stroke-width:1.8}.green{fill:#ecfdf5;stroke:#43a676;stroke-width:1.8}.purple{fill:#f5f3ff;stroke:#8b6ac6;stroke-width:1.8}.amber{fill:#fff8e8;stroke:#dca23c;stroke-width:1.8}.gray{fill:#f8fafc;stroke:#cbd5e1;stroke-width:1.5}.arrow{stroke:#64748b;stroke-width:2.7;fill:none;marker-end:url(#arrow)}.return{stroke:#2f9b68;stroke-width:2.7;fill:none;stroke-dasharray:8 6;marker-end:url(#greenArrow)}
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#64748b"/></marker>
+    <marker id="greenArrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#2f9b68"/></marker>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f5f7fb"/>
+  <text x="800" y="50" text-anchor="middle" class="title">Loop 与 ReAct Agent 调用路径</text>
+  <text x="800" y="80" text-anchor="middle" class="sub">两类 Agent 使用同一组 Session / command_exec API；device 只决定本次命令进入 CPU 还是 GPU</text>
+
+  <rect x="45" y="115" width="1510" height="285" rx="22" class="lane"/>
+  <text x="80" y="153" class="head">Loop Agent：gpu_only Session，不创建 CPU Pod</text>
+
+  <rect x="120" y="205" width="300" height="130" rx="16" class="blue"/>
+  <text x="270" y="245" text-anchor="middle" class="head">Agent / Trainer</text>
+  <text x="270" y="278" text-anchor="middle" class="text">生成完整 Candidate</text>
+  <text x="270" y="308" text-anchor="middle" class="small">command_exec(device=gpu)</text>
+
+  <rect x="610" y="195" width="380" height="150" rx="17" class="purple"/>
+  <text x="800" y="237" text-anchor="middle" class="head">Kernel Sandbox Master</text>
+  <text x="800" y="271" text-anchor="middle" class="text">HTTP Server · GPU Queue · Worker</text>
+  <text x="800" y="302" text-anchor="middle" class="small">同步等待并返回 Execution 结果</text>
+
+  <rect x="1180" y="205" width="300" height="130" rx="16" class="green"/>
+  <text x="1330" y="245" text-anchor="middle" class="head">GPU Worker Pod</text>
+  <text x="1330" y="278" text-anchor="middle" class="text">执行自包含 GPU 命令</text>
+  <text x="1330" y="308" text-anchor="middle" class="small">返回 exit code / stdout / stderr</text>
+
+  <path d="M420 270 H610" class="arrow"/>
+  <path d="M990 270 H1180" class="arrow"/>
+  <path d="M1330 335 V370 H270 V335" class="return"/>
+
+  <rect x="45" y="440" width="1510" height="390" rx="22" class="lane"/>
+  <text x="80" y="478" class="head">ReAct Agent：cpu_gpu Session 创建长期 CPU Pod</text>
+
+  <rect x="70" y="555" width="210" height="130" rx="16" class="blue"/>
+  <text x="175" y="594" text-anchor="middle" class="head">ReAct Agent</text>
+  <text x="175" y="627" text-anchor="middle" class="text">Read · Edit · Bash</text>
+  <text x="175" y="657" text-anchor="middle" class="small">command_exec(device=cpu)</text>
+
+  <rect x="330" y="545" width="260" height="150" rx="16" class="purple"/>
+  <text x="460" y="585" text-anchor="middle" class="head">Kernel Sandbox Master</text>
+  <text x="460" y="618" text-anchor="middle" class="text">创建 CPU Execution</text>
+  <text x="460" y="649" text-anchor="middle" class="small">Session 内 CPU 命令串行</text>
+  <text x="460" y="675" text-anchor="middle" class="small">同一 HTTP Endpoint</text>
+
+  <rect x="650" y="525" width="300" height="190" rx="16" class="blue"/>
+  <text x="800" y="565" text-anchor="middle" class="head">CPU Session Pod</text>
+  <text x="800" y="598" text-anchor="middle" class="text">执行项目脚本</text>
+  <text x="800" y="630" text-anchor="middle" class="small">读取源码 · pack Candidate</text>
+  <text x="800" y="660" text-anchor="middle" class="small">再次调用 Kernel Sandbox Master</text>
+  <text x="800" y="689" text-anchor="middle" class="small">command_exec(device=gpu)</text>
+
+  <rect x="1010" y="545" width="260" height="150" rx="16" class="purple"/>
+  <text x="1140" y="585" text-anchor="middle" class="head">Kernel Sandbox Master</text>
+  <text x="1140" y="618" text-anchor="middle" class="text">创建 GPU Execution</text>
+  <text x="1140" y="649" text-anchor="middle" class="small">只接收序列化输入</text>
+  <text x="1140" y="675" text-anchor="middle" class="small">不读取 CPU Pod 文件</text>
+
+  <rect x="1330" y="555" width="200" height="130" rx="16" class="green"/>
+  <text x="1430" y="594" text-anchor="middle" class="head">GPU Pod</text>
+  <text x="1430" y="627" text-anchor="middle" class="text">GPU 命令</text>
+  <text x="1430" y="657" text-anchor="middle" class="small">返回业务结果</text>
+
+  <path d="M280 620 H330" class="arrow"/>
+  <path d="M590 620 H650" class="arrow"/>
+  <path d="M950 620 H1010" class="arrow"/>
+  <path d="M1270 620 H1330" class="arrow"/>
+  <path d="M1430 685 V780 H800 V715" class="return"/>
+  <path d="M800 780 H175 V685" class="return"/>
+
+  <rect x="310" y="852" width="980" height="30" rx="8" class="gray"/>
+  <text x="800" y="873" text-anchor="middle" class="small">CPU 与 GPU Pod 不共享目录；CPU 脚本显式序列化 GPU 命令所需输入</text>
+</svg>

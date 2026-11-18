@@ -1,0 +1,3 @@
+FROM alpine:3.20
+COPY bin/sandboxd /usr/local/bin/sandboxd
+ENTRYPOINT ["/usr/local/bin/sandboxd"]

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+spec:
+  restartPolicy: Never
+  automountServiceAccountToken: false
+  containers:
+    - name: sandbox
+      image: placeholder
+      env:
+        - name: NVIDIA_VISIBLE_DEVICES
+          value: void
+      resources:
+        requests: {cpu: "2", memory: 8Gi}
+        limits: {cpu: "8", memory: 32Gi}

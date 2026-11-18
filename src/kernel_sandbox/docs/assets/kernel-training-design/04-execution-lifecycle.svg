@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">统一 Execution 执行链路</title>
+  <desc id="desc">CPU和GPU命令使用同一个command exec接口和Execution模型。Master创建Execution后，在资源分配阶段分叉到CPU Session或GPU Queue，命令完成后统一更新状态。删除Session直接删除对应CPU和GPU Pod。</desc>
+  <defs>
+    <style>
+      .title{font:700 34px Inter,Arial,"Noto Sans SC",sans-serif;fill:#14213d}.sub{font:500 16px Inter,Arial,"Noto Sans SC",sans-serif;fill:#64748b}.head{font:700 18px Inter,Arial,"Noto Sans SC",sans-serif;fill:#172033}.text{font:500 14px Inter,Arial,"Noto Sans SC",sans-serif;fill:#334155}.small{font:500 12px Inter,Arial,"Noto Sans SC",sans-serif;fill:#64748b}.panel{fill:#fff;stroke:#d7e0ec;stroke-width:1.7}.blue{fill:#eff6ff;stroke:#5b91d1;stroke-width:1.8}.green{fill:#ecfdf5;stroke:#43a676;stroke-width:1.8}.purple{fill:#f5f3ff;stroke:#8b6ac6;stroke-width:1.8}.amber{fill:#fff8e8;stroke:#dca23c;stroke-width:1.8}.red{fill:#fff1f2;stroke:#dc6572;stroke-width:1.8}.gray{fill:#f8fafc;stroke:#cbd5e1;stroke-width:1.5}.arrow{stroke:#64748b;stroke-width:2.5;fill:none;marker-end:url(#arrow)}.cpu{stroke:#477fc0;stroke-width:2.7;fill:none;marker-end:url(#blueArrow)}.gpu{stroke:#2f9b68;stroke-width:2.7;fill:none;marker-end:url(#greenArrow)}.terminate{stroke:#d95b69;stroke-width:2.5;fill:none;stroke-dasharray:8 6;marker-end:url(#redArrow)}
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#64748b"/></marker>
+    <marker id="blueArrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#477fc0"/></marker>
+    <marker id="greenArrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#2f9b68"/></marker>
+    <marker id="redArrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#d95b69"/></marker>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f5f7fb"/>
+  <text x="800" y="50" text-anchor="middle" class="title">统一 Execution 执行链路</text>
+  <text x="800" y="80" text-anchor="middle" class="sub">CPU/GPU 共用 API、ExecutionSpec 和终态语义，只在资源分配与资源收尾阶段分叉</text>
+
+  <rect x="55" y="125" width="260" height="120" rx="18" class="blue"/>
+  <text x="185" y="165" text-anchor="middle" class="head">Agent / Trainer</text>
+  <text x="185" y="198" text-anchor="middle" class="text">POST command_exec</text>
+  <text x="185" y="224" text-anchor="middle" class="small">device · command · timeout</text>
+
+  <rect x="380" y="125" width="270" height="120" rx="18" class="purple"/>
+  <text x="515" y="165" text-anchor="middle" class="head">创建 Execution</text>
+  <text x="515" y="198" text-anchor="middle" class="text">校验 Session / device</text>
+  <text x="515" y="224" text-anchor="middle" class="small">生成 execution_id</text>
+
+  <rect x="715" y="125" width="280" height="120" rx="18" class="amber"/>
+  <text x="855" y="165" text-anchor="middle" class="head">prepareExecution</text>
+  <text x="855" y="198" text-anchor="middle" class="text">占用资源并推进状态</text>
+  <text x="855" y="224" text-anchor="middle" class="small">CPU slot / GPU FIFO Queue</text>
+
+  <path d="M315 185 H380" class="arrow"/>
+  <path d="M650 185 H715" class="arrow"/>
+
+  <rect x="1070" y="105" width="470" height="230" rx="22" class="panel"/>
+  <text x="1305" y="145" text-anchor="middle" class="head">device=cpu</text>
+  <rect x="1115" y="175" width="380" height="115" rx="15" class="blue"/>
+  <text x="1305" y="208" text-anchor="middle" class="text">锁定 Session CPU 命令槽位</text>
+  <text x="1305" y="239" text-anchor="middle" class="text">direct pods/exec → CPU Session Pod</text>
+  <text x="1305" y="268" text-anchor="middle" class="small">running → Result / InfrastructureError</text>
+
+  <rect x="1070" y="380" width="470" height="260" rx="22" class="panel"/>
+  <text x="1305" y="420" text-anchor="middle" class="head">device=gpu</text>
+  <rect x="1115" y="450" width="380" height="145" rx="15" class="green"/>
+  <text x="1305" y="483" text-anchor="middle" class="text">queued → 选择 idle Worker → running</text>
+  <text x="1305" y="514" text-anchor="middle" class="text">GPU 前检查 → sandboxd exec → 后检查</text>
+  <text x="1305" y="545" text-anchor="middle" class="text">GPU 后检查 → idle 或删除 Worker</text>
+  <text x="1305" y="574" text-anchor="middle" class="small">running → Result / InfrastructureError</text>
+
+  <path d="M995 170 H1040 V220 H1070" class="cpu"/>
+  <path d="M995 200 H1030 V510 H1070" class="gpu"/>
+
+  <rect x="715" y="690" width="325" height="125" rx="18" class="purple"/>
+  <text x="877" y="729" text-anchor="middle" class="head">finishExecution</text>
+  <text x="877" y="760" text-anchor="middle" class="text">串行更新业务状态</text>
+  <text x="877" y="787" text-anchor="middle" class="small">CPU Session · GPU Worker</text>
+
+  <rect x="380" y="690" width="270" height="125" rx="18" class="green"/>
+  <text x="515" y="729" text-anchor="middle" class="head">Execution 终态</text>
+  <text x="515" y="760" text-anchor="middle" class="text">唤醒 HTTP Handler</text>
+  <text x="515" y="787" text-anchor="middle" class="small">completed / failed / timed_out</text>
+
+  <path d="M1070 285 H1035 V730 H1040" class="cpu"/>
+  <path d="M1070 585 H1025 V770 H1040" class="gpu"/>
+  <path d="M715 752 H650" class="arrow"/>
+
+  <rect x="55" y="380" width="545" height="235" rx="22" class="red"/>
+  <text x="327" y="421" text-anchor="middle" class="head">Session 删除</text>
+  <text x="95" y="465" class="text">• DELETE 单个 Session</text>
+  <text x="95" y="500" class="text">• DELETE 全部 Session</text>
+  <text x="95" y="535" class="text">• 排队或执行中的命令：failed / SESSION_DELETED</text>
+  <text x="95" y="570" class="text">• 直接删除对应 CPU / GPU Pod</text>
+
+  <rect x="715" y="455" width="280" height="110" rx="17" class="red"/>
+  <text x="855" y="495" text-anchor="middle" class="head">deleteSession</text>
+  <text x="855" y="522" text-anchor="middle" class="small">移出 GPU Queue</text>
+  <text x="855" y="545" text-anchor="middle" class="small">删除 CPU Pod / 运行中 GPU Worker</text>
+
+  <path d="M600 500 H715" class="terminate"/>
+  <path d="M995 490 H1035 V250 H1070" class="terminate"/>
+  <path d="M995 530 H1070" class="terminate"/>
+  <path d="M855 565 V690" class="terminate"/>
+
+  <rect x="255" y="850" width="1090" height="34" rx="9" class="gray"/>
+  <text x="800" y="873" text-anchor="middle" class="small">timeout 进入 timed_out；GPU 基础设施失败回到 queued，CPU 不自动重试</text>
+</svg>

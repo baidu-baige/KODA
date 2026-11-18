@@ -1,0 +1,33 @@
+backend: docker
+master_id: koda-local
+server:
+  listen_address: 0.0.0.0:18766
+  # Must be reachable from the agent and CPU containers.
+  advertised_endpoint: http://YOUR_HOST_IP:18766
+docker:
+  binary: docker
+  state_dir: ../../.run/koda-local-docker
+  sandboxd_binary: ../../bin/sandboxd
+  network: bridge
+  # Use full UUIDs from nvidia-smi -L, and dedicate these GPUs to this Master.
+  gpu_devices:
+    - GPU-REPLACE-WITH-REAL-UUID
+  cpu_cores: 8
+  memory_mb: 32768
+  # Enable only when your Nsight setup requires it.
+  gpu_capabilities: [SYS_ADMIN]
+  mounts: []
+# This business image may keep a documented evaluator helper alive.
+# Scope allowlisting to its process + ancestor; never whitelist arbitrary Python.
+sandboxd:
+  gpu_process_allowlist:
+    - process: multiprocessing.spawn
+      ancestor: kerneleval.server
+execution:
+  max_attempts: 2
+  max_stdin_mb: 4
+  max_output_mb: 1
+gc:
+  interval_seconds: 60
+  session_idle_timeout_seconds: 5400
+  gpu_pool_idle_timeout_seconds: 5400

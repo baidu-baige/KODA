@@ -1,0 +1,7 @@
+.cache/
+bin/
+.run/
+gpu-pool-monitor-state.json
+deploy/config.yaml
+
+deploy/docker/master.local.yaml

@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GPU Pool Monitor</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>GPU Pool Monitor</h1>
+      <p id="updatedAt">Waiting for data</p>
+    </div>
+    <div class="topbar-actions">
+      <div id="targetHealth" class="target-health"></div>
+      <button id="refreshButton" class="icon-button" type="button" title="Refresh now" aria-label="Refresh now">↻</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="table-panel pool-selector" aria-label="GPU pool selection">
+      <div class="toolbar">
+        <div id="clusterTabs" class="tabs" role="tablist" aria-label="Monitoring cluster"></div>
+        <label class="search">
+          <span>Filter</span>
+          <input id="searchInput" type="search" placeholder="Pool ID or image" autocomplete="off">
+        </label>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Pool</th>
+              <th>Cluster</th>
+              <th>Utilization</th>
+              <th>Workers</th>
+              <th>Replicas</th>
+              <th>Balance</th>
+              <th>Queue</th>
+              <th>Queue max</th>
+              <th>Sessions</th>
+              <th>Image</th>
+            </tr>
+          </thead>
+          <tbody id="poolRows"></tbody>
+        </table>
+        <div id="emptyState" class="empty-state" hidden>No matching GPU pools</div>
+      </div>
+    </section>
+
+    <section class="summary-panel" aria-label="Current monitoring scope">
+      <div class="scope-header">
+        <div>
+          <span class="eyebrow">Current scope</span>
+          <h2 id="summaryScope">All clusters</h2>
+          <p id="summaryScopeHint">Aggregated across every visible GPU pool</p>
+        </div>
+        <span id="summaryScopeType" class="scope-type">Global</span>
+      </div>
+      <div class="summary-band">
+        <div class="metric">
+          <span id="summaryUtilizationLabel">Cluster utilization</span>
+          <strong id="summaryUtilization">--</strong>
+        </div>
+        <div class="metric">
+          <span id="summaryPoolsLabel">GPU pools</span>
+          <strong id="summaryPools">0</strong>
+        </div>
+        <div class="metric">
+          <span>Busy / available</span>
+          <strong id="summaryWorkers">0 / 0</strong>
+        </div>
+        <div class="metric">
+          <span>Pending workers</span>
+          <strong id="summaryPending">0</strong>
+        </div>
+        <div class="metric">
+          <span>Waiting commands</span>
+          <strong id="summaryQueued">--</strong>
+        </div>
+        <div class="metric">
+          <span>Queue average</span>
+          <strong id="summaryQueueAvg">--</strong>
+        </div>
+        <div class="metric">
+          <span>Queue max</span>
+          <strong id="summaryQueueMax">--</strong>
+        </div>
+        <div class="metric">
+          <span>Commands / min</span>
+          <strong id="summaryQueueRate">--</strong>
+        </div>
+        <div class="metric">
+          <span>Active sessions</span>
+          <strong id="summarySessions">0</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="workspace">
+      <aside class="detail-panel" aria-live="polite">
+        <div class="detail-header">
+          <div>
+            <span class="eyebrow">Selected pool</span>
+            <h2 id="detailPool">No pool selected</h2>
+          </div>
+          <span id="detailCluster" class="cluster-label">--</span>
+        </div>
+        <div class="detail-stats">
+          <div><span>Interval</span><strong id="detailUtilization">--</strong></div>
+          <div><span>Lifetime</span><strong id="detailLifetime">--</strong></div>
+          <div><span>Balance</span><strong id="detailBalance">--</strong></div>
+          <div><span>Sessions</span><strong id="detailSessions">0</strong><small id="detailSessionStatus">--</small></div>
+        </div>
+        <div class="prefix-section">
+          <div class="section-title">
+            <h3>Session prefixes</h3>
+            <span id="sessionPrefixTotal">0 prefixes</span>
+          </div>
+          <div id="sessionPrefixRows" class="prefix-rows"></div>
+        </div>
+        <div class="chart-header">
+          <h3>Utilization history</h3>
+          <span id="historyRange">--</span>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="historyChart" aria-label="GPU pool utilization history"></canvas>
+        </div>
+        <div class="worker-section">
+          <div class="section-title">
+            <h3>Workers</h3>
+            <span id="workerTotal">0 total</span>
+          </div>
+          <div class="worker-bar" aria-label="Worker status distribution">
+            <span id="busyBar" class="busy"></span>
+            <span id="idleBar" class="idle"></span>
+            <span id="pendingBar" class="pending"></span>
+          </div>
+          <div class="worker-legend">
+            <span><i class="busy-dot"></i>Busy <b id="detailBusy">0</b></span>
+            <span><i class="idle-dot"></i>Idle <b id="detailIdle">0</b></span>
+            <span><i class="pending-dot"></i>Pending <b id="detailPending">0</b></span>
+          </div>
+        </div>
+        <div class="queue-section">
+          <div class="section-title">
+            <h3>Queue</h3>
+            <span id="detailQueueRate">-- / min</span>
+          </div>
+          <div class="queue-metrics">
+            <div><span>Waiting now</span><strong id="detailQueueLength">--</strong></div>
+            <div><span>Commands</span><strong id="detailQueueCount">--</strong></div>
+            <div><span>Average</span><strong id="detailQueueAvg">--</strong></div>
+            <div><span>Max lifetime</span><strong id="detailQueueMax">--</strong></div>
+          </div>
+        </div>
+        <div class="image-section">
+          <span>Image</span>
+          <code id="detailImage">--</code>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>
