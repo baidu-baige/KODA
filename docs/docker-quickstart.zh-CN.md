@@ -67,8 +67,8 @@ printf '\n'
 printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
 unset GHCR_TOKEN
 
-export AGENT_IMAGE=ghcr.io/baidu-baige/koda-agent-release:20261117-controller-8afc1e2
-export SANDBOX_IMAGE=ghcr.io/baidu-baige/koda-sandbox:py312-cuda129-torch28-2026110922
+export AGENT_IMAGE=ghcr.io/baidu-baige/koda-agent-clean:20261118-clean
+export SANDBOX_IMAGE=ghcr.io/baidu-baige/koda-sandbox-clean:20261118-clean
 docker pull "$AGENT_IMAGE"
 docker pull "$SANDBOX_IMAGE"
 ```
@@ -81,8 +81,8 @@ sandbox 镜像提供编译器和评测/性能分析工具，agent 镜像提供 P
 
 | 镜像 | Digest |
 | --- | --- |
-| Agent | `sha256:2245487af2cebe150fa36ac54ce91ad0996475191b16852b81a4067af72c3dcc` |
-| Sandbox | `sha256:5e78374c8348fd79e570dd2d06efead840bcc520763a8c812178df08a2e6d58a` |
+| Agent | `sha256:6e9ec2d4d424705f0988a0a10fed5dcbfbeabbe439263880ca7bfcac047a5b9b` |
+| Sandbox | `sha256:69e69e4f352c0c5308acbe60b19b60938bc56785ce2e7babe5ca2c4354de67cb` |
 
 ## 4. 构建 Server 并选择 GPU
 

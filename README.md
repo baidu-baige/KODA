@@ -2,6 +2,8 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
+[**Hugging Face · KODA-35B**](https://huggingface.co/Baidu-Baige/KODA-35B) · [**知乎 · KODA 技术文章**](https://zhuanlan.zhihu.com/p/2106387936149361761)
+
 KODA is a framework for optimizing GPU kernels with language models. It generates CUDA code, compiles and evaluates candidates in managed sandboxes, and feeds correctness, timing, and profiling results back to the model for iterative improvement.
 
 KODA is built on [mini-SWE-agent](https://github.com/SWE-agent/mini-swe-agent), extended with GPU kernel optimization controllers, sandbox execution, and evaluation/profiling tools.
@@ -54,8 +56,8 @@ You do **not** manually create task sandboxes. Starting evaluation creates a GPU
 
 | Image | Address |
 | --- | --- |
-| Agent | `ghcr.io/baidu-baige/koda-agent-release:20261117-controller-8afc1e2` |
-| CPU/GPU sandbox | `ghcr.io/baidu-baige/koda-sandbox:py312-cuda129-torch28-2026110922` |
+| Agent | `ghcr.io/baidu-baige/koda-agent-clean:20261118-clean` |
+| CPU/GPU sandbox | `ghcr.io/baidu-baige/koda-sandbox-clean:20261118-clean` |
 
 If a GHCR image is private, sign in with a GitHub account that has package access and a classic token with `read:packages`.
 
@@ -65,13 +67,13 @@ read -rsp 'GitHub package token: ' GHCR_TOKEN
 printf '\n'
 printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
 unset GHCR_TOKEN
-docker pull ghcr.io/baidu-baige/koda-agent-release:20261117-controller-8afc1e2
-docker pull ghcr.io/baidu-baige/koda-sandbox:py312-cuda129-torch28-2026110922
+docker pull ghcr.io/baidu-baige/koda-agent-clean:20261118-clean
+docker pull ghcr.io/baidu-baige/koda-sandbox-clean:20261118-clean
 ```
 
 The agent image contains the code at `/workspace/mini-swe-agent`. The sandbox image supplies the compilation/evaluation environment; it is not the Sandbox Server. The agent image includes the controller-only code and both ckpt140 H/B configurations. For Docker mode, build the Master and sandboxd from the current source checkout. Docker mode copies the built sandboxd into containers and needs no injector image. Kubernetes mode still uses a sandboxd injector image and `imagePullSecrets` for private registry access.
 
-The agent image passes the 290-test regression suite. The Docker backend has also passed B200 model → compile → eval → profile validation, GPU isolation, timeout, worker recovery, Master restart and cleanup checks. Follow the deployment checks for your own environment.
+The agent image passes the 320-test regression suite. The Docker backend has also passed B200 model → compile → eval → profile validation, GPU isolation, timeout, worker recovery, Master restart and cleanup checks. Follow the deployment checks for your own environment.
 
 ## Install
 
@@ -88,7 +90,7 @@ python -m minisweagent.run.benchmarks.kernelbench --help
 
 ## ckpt140 / Qwen3.6 configuration
 
-The KODA model weights (ckpt140) are hosted on [Hugging Face](https://huggingface.co/Baidu-Baige/KODA).
+The KODA model weights (ckpt140) are hosted on [Hugging Face](https://huggingface.co/Baidu-Baige/KODA-35B).
 
 | Target evaluation GPU | Controller YAML | CUDA compile architecture |
 | --- | --- | --- |
@@ -116,7 +118,7 @@ The override clears inherited GPU resource requests so that the server's default
 export CONTROLLER_CONFIG=configs/controller_h.yaml  # B200: configs/controller_b.yaml
 chmod 600 eval.local.yaml
 export SANDBOX_URL='http://YOUR_SANDBOX_SERVER:PORT'
-export SANDBOX_IMAGE='ghcr.io/baidu-baige/koda-sandbox:py312-cuda129-torch28-2026110922'
+export SANDBOX_IMAGE='ghcr.io/baidu-baige/koda-sandbox-clean:20261118-clean'
 export DATASET=kernelbench
 ```
 

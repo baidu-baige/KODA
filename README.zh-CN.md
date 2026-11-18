@@ -2,6 +2,8 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
+[**Hugging Face · KODA-35B**](https://huggingface.co/Baidu-Baige/KODA-35B) · [**知乎 · KODA 技术文章**](https://zhuanlan.zhihu.com/p/2106387936149361761)
+
 KODA 是一个使用语言模型优化 GPU kernel 的框架。它生成 CUDA 代码，在受管 sandbox 中编译、评测候选实现，并将正确性、计时和性能分析结果反馈给模型，持续迭代优化。
 
 KODA 基于 [mini-SWE-agent](https://github.com/SWE-agent/mini-swe-agent)，扩展了 GPU kernel 优化 controller、sandbox 执行和评测/性能分析工具。
@@ -54,8 +56,8 @@ Evaluation runner ── model API ── candidate kernel.py / kernel.cu
 
 | 镜像 | 地址 |
 | --- | --- |
-| Agent | `ghcr.io/baidu-baige/koda-agent-release:20261117-controller-8afc1e2` |
-| CPU/GPU sandbox | `ghcr.io/baidu-baige/koda-sandbox:py312-cuda129-torch28-2026110922` |
+| Agent | `ghcr.io/baidu-baige/koda-agent-clean:20261118-clean` |
+| CPU/GPU sandbox | `ghcr.io/baidu-baige/koda-sandbox-clean:20261118-clean` |
 
 如果 GHCR 镜像为私有，请使用有镜像包访问权限的 GitHub 账号及带 `read:packages` 的 classic 令牌登录。
 
@@ -65,13 +67,13 @@ read -rsp 'GitHub package token: ' GHCR_TOKEN
 printf '\n'
 printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
 unset GHCR_TOKEN
-docker pull ghcr.io/baidu-baige/koda-agent-release:20261117-controller-8afc1e2
-docker pull ghcr.io/baidu-baige/koda-sandbox:py312-cuda129-torch28-2026110922
+docker pull ghcr.io/baidu-baige/koda-agent-clean:20261118-clean
+docker pull ghcr.io/baidu-baige/koda-sandbox-clean:20261118-clean
 ```
 
 agent 镜像内代码位于 `/workspace/mini-swe-agent`。sandbox 镜像提供编译/评测环境，本身不是 Sandbox Server。Agent 镜像包含精简后的 controller 代码及 ckpt140 的 H/B 两份配置。Docker 模式需从当前源码构建 Master 和 sandboxd。Docker 模式将编译好的 sandboxd 拷入容器，不需要注入镜像。Kubernetes 仍使用 sandboxd 注入镜像和用于私有仓库认证的 `imagePullSecrets`。
 
-Agent 镜像通过了 290 项回归测试。Docker 后端已通过 B200 模型 → compile → eval → profile 验证，以及 GPU 隔离、超时、worker 恢复、Master 重启和清理检查。请按教程检查自己的部署环境。
+Agent 镜像通过了 320 项回归测试。Docker 后端已通过 B200 模型 → compile → eval → profile 验证，以及 GPU 隔离、超时、worker 恢复、Master 重启和清理检查。请按教程检查自己的部署环境。
 
 ## 安装
 
@@ -88,7 +90,7 @@ python -m minisweagent.run.benchmarks.kernelbench --help
 
 ## ckpt140 / Qwen3.6 配置
 
-KODA 模型权重（ckpt140）托管在 [Hugging Face](https://huggingface.co/Baidu-Baige/KODA)。
+KODA 模型权重（ckpt140）托管在 [Hugging Face](https://huggingface.co/Baidu-Baige/KODA-35B)。
 
 | 评测 GPU | Controller YAML | CUDA 编译架构 |
 | --- | --- | --- |
@@ -116,7 +118,7 @@ KODA 模型权重（ckpt140）托管在 [Hugging Face](https://huggingface.co/Ba
 export CONTROLLER_CONFIG=configs/controller_h.yaml  # B200: configs/controller_b.yaml
 chmod 600 eval.local.yaml
 export SANDBOX_URL='http://YOUR_SANDBOX_SERVER:PORT'
-export SANDBOX_IMAGE='ghcr.io/baidu-baige/koda-sandbox:py312-cuda129-torch28-2026110922'
+export SANDBOX_IMAGE='ghcr.io/baidu-baige/koda-sandbox-clean:20261118-clean'
 export DATASET=kernelbench
 ```
 
