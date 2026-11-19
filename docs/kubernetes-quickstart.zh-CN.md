@@ -38,7 +38,7 @@ Sandbox Server / Master (Go, started before evaluation)
 | sandboxd 注入镜像 | 包含 `/usr/local/bin/sandboxd`、`sh`、`cp` 和 `chmod` |
 | 数据集 | runner 兼容格式，每题含参考 `code` |
 
-**镜像：**runner 使用 `ghcr.io/baidu-baige/koda-agent-clean:20261118-clean`，CPU 编译与 GPU 执行均可使用 `ghcr.io/baidu-baige/koda-sandbox-clean:20261118-clean`。私有镜像的拉取方式参见 [镜像登录/拉取说明](../README.zh-CN.md#容器镜像)。CPU/GPU 模板都需配置 `imagePullSecrets`，供 Kubernetes 拉取。sandboxd 注入镜像单独按第 5.2 节构建。
+**镜像：**runner 使用 `docker.io/loongsage/koda:agent-20261118-clean`，CPU 编译与 GPU 执行均可使用 `docker.io/loongsage/koda:sandbox-20261118-clean`。如果集群要求镜像仓库认证，请配置 `imagePullSecrets`。sandboxd 注入镜像单独按第 5.2 节构建。
 
 **数据集：**仓库内置 KernelBench。SOL-ExecBench 输入说明见[评测数据](../dataset/README.md)。
 
@@ -224,7 +224,7 @@ export DATASET=kernelbench
 
 ```bash
 export SANDBOX_URL='http://YOUR_MASTER_HOST:18766'
-export SANDBOX_IMAGE='ghcr.io/baidu-baige/koda-sandbox-clean:20261118-clean'
+export SANDBOX_IMAGE='docker.io/loongsage/koda:sandbox-20261118-clean'
 export CPU_IMAGE="$SANDBOX_IMAGE"
 export RUN_TAG="koda-$(date +%Y%m%d-%H%M%S)"
 export CONTROLLER_CONFIG=configs/controller_h.yaml  # B200: configs/controller_b.yaml

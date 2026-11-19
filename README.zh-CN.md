@@ -56,19 +56,14 @@ Evaluation runner ── model API ── candidate kernel.py / kernel.cu
 
 | 镜像 | 地址 |
 | --- | --- |
-| Agent | `ghcr.io/baidu-baige/koda-agent-clean:20261118-clean` |
-| CPU/GPU sandbox | `ghcr.io/baidu-baige/koda-sandbox-clean:20261118-clean` |
+| Agent | `docker.io/loongsage/koda:agent-20261118-clean` |
+| CPU/GPU sandbox | `docker.io/loongsage/koda:sandbox-20261118-clean` |
 
-如果 GHCR 镜像为私有，请使用有镜像包访问权限的 GitHub 账号及带 `read:packages` 的 classic 令牌登录。
+KODA 发布镜像托管于 Docker Hub，可以匿名拉取。
 
 ```bash
-read -rp 'GitHub username: ' GHCR_USER
-read -rsp 'GitHub package token: ' GHCR_TOKEN
-printf '\n'
-printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
-unset GHCR_TOKEN
-docker pull ghcr.io/baidu-baige/koda-agent-clean:20261118-clean
-docker pull ghcr.io/baidu-baige/koda-sandbox-clean:20261118-clean
+docker pull docker.io/loongsage/koda:agent-20261118-clean
+docker pull docker.io/loongsage/koda:sandbox-20261118-clean
 ```
 
 agent 镜像内代码位于 `/workspace/mini-swe-agent`。sandbox 镜像提供编译/评测环境，本身不是 Sandbox Server。Agent 镜像包含精简后的 controller 代码及 ckpt140 的 H/B 两份配置。Docker 模式需从当前源码构建 Master 和 sandboxd。Docker 模式将编译好的 sandboxd 拷入容器，不需要注入镜像。Kubernetes 仍使用 sandboxd 注入镜像和用于私有仓库认证的 `imagePullSecrets`。
@@ -118,7 +113,7 @@ KODA 模型权重（ckpt140）托管在 [Hugging Face](https://huggingface.co/Ba
 export CONTROLLER_CONFIG=configs/controller_h.yaml  # B200: configs/controller_b.yaml
 chmod 600 eval.local.yaml
 export SANDBOX_URL='http://YOUR_SANDBOX_SERVER:PORT'
-export SANDBOX_IMAGE='ghcr.io/baidu-baige/koda-sandbox-clean:20261118-clean'
+export SANDBOX_IMAGE='docker.io/loongsage/koda:sandbox-20261118-clean'
 export DATASET=kernelbench
 ```
 

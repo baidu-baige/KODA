@@ -56,19 +56,14 @@ You do **not** manually create task sandboxes. Starting evaluation creates a GPU
 
 | Image | Address |
 | --- | --- |
-| Agent | `ghcr.io/baidu-baige/koda-agent-clean:20261118-clean` |
-| CPU/GPU sandbox | `ghcr.io/baidu-baige/koda-sandbox-clean:20261118-clean` |
+| Agent | `docker.io/loongsage/koda:agent-20261118-clean` |
+| CPU/GPU sandbox | `docker.io/loongsage/koda:sandbox-20261118-clean` |
 
-If a GHCR image is private, sign in with a GitHub account that has package access and a classic token with `read:packages`.
+The published KODA images are available from Docker Hub. You can pull them without signing in.
 
 ```bash
-read -rp 'GitHub username: ' GHCR_USER
-read -rsp 'GitHub package token: ' GHCR_TOKEN
-printf '\n'
-printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
-unset GHCR_TOKEN
-docker pull ghcr.io/baidu-baige/koda-agent-clean:20261118-clean
-docker pull ghcr.io/baidu-baige/koda-sandbox-clean:20261118-clean
+docker pull docker.io/loongsage/koda:agent-20261118-clean
+docker pull docker.io/loongsage/koda:sandbox-20261118-clean
 ```
 
 The agent image contains the code at `/workspace/mini-swe-agent`. The sandbox image supplies the compilation/evaluation environment; it is not the Sandbox Server. The agent image includes the controller-only code and both ckpt140 H/B configurations. For Docker mode, build the Master and sandboxd from the current source checkout. Docker mode copies the built sandboxd into containers and needs no injector image. Kubernetes mode still uses a sandboxd injector image and `imagePullSecrets` for private registry access.
@@ -118,7 +113,7 @@ The override clears inherited GPU resource requests so that the server's default
 export CONTROLLER_CONFIG=configs/controller_h.yaml  # B200: configs/controller_b.yaml
 chmod 600 eval.local.yaml
 export SANDBOX_URL='http://YOUR_SANDBOX_SERVER:PORT'
-export SANDBOX_IMAGE='ghcr.io/baidu-baige/koda-sandbox-clean:20261118-clean'
+export SANDBOX_IMAGE='docker.io/loongsage/koda:sandbox-20261118-clean'
 export DATASET=kernelbench
 ```
 

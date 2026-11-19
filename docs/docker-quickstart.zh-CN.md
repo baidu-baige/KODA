@@ -52,23 +52,17 @@ chmod 700 "$KODA_RUN_DIR"
 git rev-parse HEAD
 ```
 
-仓库为私有时，Git 需要具有仓库读取权限的账号/token。使用现有 Git 凭据管理器认证，不要把 token 写进克隆 URL。GHCR package 权限与代码仓库权限是两回事。
+仓库为私有时，Git 需要具有仓库读取权限的账号/token。使用现有 Git 凭据管理器认证，不要把 token 写进克隆 URL。
 
 后续命令请在同一个 Bash shell 中执行，确保导出的变量和辅助函数继续可用。Master 会在后台运行，无需另开终端。
 
-## 3. 登录并拉取镜像
+## 3. 拉取镜像
 
-如果 GHCR 镜像为私有，请使用有镜像包访问权限的 GitHub 账号及带 `read:packages` 的 classic 令牌登录。
+KODA 发布镜像托管于 Docker Hub，可以匿名拉取。
 
 ```bash
-read -rp 'GitHub username: ' GHCR_USER
-read -rsp 'GitHub package token: ' GHCR_TOKEN
-printf '\n'
-printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
-unset GHCR_TOKEN
-
-export AGENT_IMAGE=ghcr.io/baidu-baige/koda-agent-clean:20261118-clean
-export SANDBOX_IMAGE=ghcr.io/baidu-baige/koda-sandbox-clean:20261118-clean
+export AGENT_IMAGE=docker.io/loongsage/koda:agent-20261118-clean
+export SANDBOX_IMAGE=docker.io/loongsage/koda:sandbox-20261118-clean
 docker pull "$AGENT_IMAGE"
 docker pull "$SANDBOX_IMAGE"
 ```
@@ -325,7 +319,6 @@ unset MODEL_API_KEY
 
 如果 agent 容器访问模型 API 也需要代理，需明确把相关代理变量传入辅助函数的 `docker run`。将 Master 地址加入 `NO_PROXY`，使 sandbox 请求继续走本地网络。
 
-- **GitHub/GHCR 私有访问：**代码仓库和 package 权限分别配置，两者都需认证。不要把 token 存进仓库或克隆 URL。
 - **Docker login/pull 超时而 curl 正常：**Docker daemon 网络配置与 shell 代理变量不同。请管理员配置 daemon 代理/CA，或使用用户态 registry 客户端通过批准的代理和 CA 下载归档后导入 Docker。
 - **TLS 校验失败：**使用所在网络批准的 CA bundle，不要关闭证书校验。
 - **Go 模块/PyPI 下载失败：**先区分连接/CA 错误和包缺失。本教程的容器化 agent 路线完全无需宿主机 pip 安装。
@@ -358,11 +351,9 @@ PY
 export PATH="$KODA_RUN_DIR/tools:$PATH"
 ```
 
-然后在同一套 shell 代理/CA 设置下登录并拉取：
+然后使用同一套 shell 代理和 CA 设置拉取：
 
 ```bash
-# Read a package token from a protected file; crane writes Docker-compatible credentials.
-cat /path/to/protected/package-token | crane auth login ghcr.io -u YOUR_GITHUB_USER --password-stdin
 crane digest "$SANDBOX_IMAGE"
 crane pull --cache_path "$KODA_RUN_DIR/registry-cache" "$SANDBOX_IMAGE" "$KODA_RUN_DIR/sandbox.tar"
 docker load -i "$KODA_RUN_DIR/sandbox.tar"

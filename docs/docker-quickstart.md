@@ -52,23 +52,17 @@ chmod 700 "$KODA_RUN_DIR"
 git rev-parse HEAD
 ```
 
-While the repository is private, Git needs an account/token with repository read access. Authenticate using your existing Git credential helper; do not put tokens in clone URLs. A GHCR package token and repository access are separate permissions.
+While the repository is private, Git needs an account/token with repository read access. Authenticate using your existing Git credential helper; do not put tokens in clone URLs.
 
 Run the remaining commands in the same Bash shell so the exported variables and helper function remain available. The Master is started in the background; a second terminal is not required.
 
-## 3. Authenticate and pull the images
+## 3. Pull the images
 
-If a GHCR image is private, sign in with a GitHub account that has package access and a classic token with `read:packages`.
+The published KODA images are available from Docker Hub. You can pull them without signing in.
 
 ```bash
-read -rp 'GitHub username: ' GHCR_USER
-read -rsp 'GitHub package token: ' GHCR_TOKEN
-printf '\n'
-printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
-unset GHCR_TOKEN
-
-export AGENT_IMAGE=ghcr.io/baidu-baige/koda-agent-clean:20261118-clean
-export SANDBOX_IMAGE=ghcr.io/baidu-baige/koda-sandbox-clean:20261118-clean
+export AGENT_IMAGE=docker.io/loongsage/koda:agent-20261118-clean
+export SANDBOX_IMAGE=docker.io/loongsage/koda:sandbox-20261118-clean
 docker pull "$AGENT_IMAGE"
 docker pull "$SANDBOX_IMAGE"
 ```
@@ -325,7 +319,6 @@ Different tools use different trust/proxy configuration. Apply your network's ap
 
 If the model API needs a proxy inside the agent container, explicitly pass the relevant proxy variables to the helper's `docker run` command. Include the Master address in `NO_PROXY` so sandbox requests stay on the local network.
 
-- **GitHub/GHCR private access:** repository permission and package permission are separate. Authenticate both. Do not store tokens in repository files or clone URLs.
 - **Docker login/pull times out but curl works:** Docker daemon network settings are separate from shell proxy variables. Ask your administrator to configure daemon proxy/CA settings, or use a userspace registry client with your approved proxy and CA, then load the downloaded archive into Docker.
 - **TLS verification fails:** use the CA bundle approved for your network. Do not disable certificate verification.
 - **Go module/PyPI downloads fail:** distinguish connection/CA errors from missing packages. This guide's containerized agent path avoids host pip installation entirely.
@@ -358,11 +351,9 @@ PY
 export PATH="$KODA_RUN_DIR/tools:$PATH"
 ```
 
-Then authenticate and pull with the same shell proxy/CA settings:
+Then pull with the same shell proxy/CA settings:
 
 ```bash
-# Read a package token from a protected file; crane writes Docker-compatible credentials.
-cat /path/to/protected/package-token | crane auth login ghcr.io -u YOUR_GITHUB_USER --password-stdin
 crane digest "$SANDBOX_IMAGE"
 crane pull --cache_path "$KODA_RUN_DIR/registry-cache" "$SANDBOX_IMAGE" "$KODA_RUN_DIR/sandbox.tar"
 docker load -i "$KODA_RUN_DIR/sandbox.tar"

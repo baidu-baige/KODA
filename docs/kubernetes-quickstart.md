@@ -38,7 +38,7 @@ You need:
 | sandboxd injector image | Contains `/usr/local/bin/sandboxd` plus `sh`, `cp`, and `chmod` |
 | Dataset | A runner-compatible dataset, including the reference `code` for every task |
 
-**Images:** use `ghcr.io/baidu-baige/koda-agent-clean:20261118-clean` for the runner and `ghcr.io/baidu-baige/koda-sandbox-clean:20261118-clean` for both CPU compilation and GPU execution. For private packages, see the [image login/pull instructions](../README.md#container-images). Configure `imagePullSecrets` in both CPU/GPU templates so Kubernetes can pull them. The sandboxd injector remains a separate image built in section 5.2.
+**Images:** use `docker.io/loongsage/koda:agent-20261118-clean` for the runner and `docker.io/loongsage/koda:sandbox-20261118-clean` for both CPU compilation and GPU execution. Configure `imagePullSecrets` if your cluster requires registry authentication. The sandboxd injector remains a separate image built in section 5.2.
 
 **Dataset:** KernelBench is bundled. See [Benchmark datasets](../dataset/README.md) for SOL-ExecBench inputs.
 
@@ -224,7 +224,7 @@ On the runner, set `SANDBOX_URL` to the already-started Master. CPU session Pods
 
 ```bash
 export SANDBOX_URL='http://YOUR_MASTER_HOST:18766'
-export SANDBOX_IMAGE='ghcr.io/baidu-baige/koda-sandbox-clean:20261118-clean'
+export SANDBOX_IMAGE='docker.io/loongsage/koda:sandbox-20261118-clean'
 export CPU_IMAGE="$SANDBOX_IMAGE"
 export RUN_TAG="koda-$(date +%Y%m%d-%H%M%S)"
 export CONTROLLER_CONFIG=configs/controller_h.yaml  # B200: configs/controller_b.yaml
