@@ -68,7 +68,7 @@ docker pull docker.io/loongsage/koda:sandbox-20261118-clean
 
 agent 镜像内代码位于 `/workspace/mini-swe-agent`。sandbox 镜像提供编译/评测环境，本身不是 Sandbox Server。Agent 镜像包含精简后的 controller 代码及 ckpt140 的 H/B 两份配置。Docker 模式需从当前源码构建 Master 和 sandboxd。Docker 模式将编译好的 sandboxd 拷入容器，不需要注入镜像。Kubernetes 仍使用 sandboxd 注入镜像和用于私有仓库认证的 `imagePullSecrets`。
 
-Agent 镜像通过了 320 项回归测试。Docker 后端已通过 B200 模型 → compile → eval → profile 验证，以及 GPU 隔离、超时、worker 恢复、Master 重启和清理检查。请按教程检查自己的部署环境。
+Agent 镜像通过了 320 项回归测试。Docker 后端已通过 SM100 GPUs 模型 → compile → eval → profile 验证，以及 GPU 隔离、超时、worker 恢复、Master 重启和清理检查。请按教程检查自己的部署环境。
 
 ## 安装
 
@@ -90,7 +90,7 @@ KODA 模型权重（ckpt140）托管在 [Hugging Face](https://huggingface.co/Ba
 | 评测 GPU | Controller YAML | CUDA 编译架构 |
 | --- | --- | --- |
 | H100 / H20（Hopper） | [controller_h.yaml](configs/controller_h.yaml) | `9.0` |
-| B200（Blackwell） | [controller_b.yaml](configs/controller_b.yaml) | `10.0a` |
+| SM100 GPUs | [controller_b.yaml](configs/controller_b.yaml) | `10.0a` |
 
 两份都是同一个 ckpt140/Qwen3.6 controller，只区分目标硬件，不是不同 agent 模式。模型参数均为 temperature `0.6`、top-p `0.95`、top-k `20`、min-p `0`、presence penalty `0`、repetition penalty `1`、开启思考、单次最多输出 65536 token、对话预算 262144 token。正式运行预算为 70 轮、50 次评测提交、7200 秒，启用动态输出额度并保留 10240 token margin。
 
@@ -110,7 +110,7 @@ KODA 模型权重（ckpt140）托管在 [Hugging Face](https://huggingface.co/Ba
 示例覆盖配置清除继承的 GPU 资源请求，使用 Server 默认集群/模板；需要集群路由时明确配置资源键。采样、思考和输出 token 参数取决于服务；示例不强制服务特有的思考标记。做模型对照时应明确设置这些参数以保证可复现。
 
 ```bash
-export CONTROLLER_CONFIG=configs/controller_h.yaml  # B200: configs/controller_b.yaml
+export CONTROLLER_CONFIG=configs/controller_h.yaml  # SM100 GPUs: configs/controller_b.yaml
 chmod 600 eval.local.yaml
 export SANDBOX_URL='http://YOUR_SANDBOX_SERVER:PORT'
 export SANDBOX_IMAGE='docker.io/loongsage/koda:sandbox-20261118-clean'
