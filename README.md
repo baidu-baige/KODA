@@ -68,7 +68,7 @@ docker pull docker.io/loongsage/koda:sandbox-20261118-clean
 
 The agent image contains the code at `/workspace/mini-swe-agent`. The sandbox image supplies the compilation/evaluation environment; it is not the Sandbox Server. The agent image includes the controller-only code and both ckpt140 H/B configurations. For Docker mode, build the Master and sandboxd from the current source checkout. Docker mode copies the built sandboxd into containers and needs no injector image. Kubernetes mode still uses a sandboxd injector image and `imagePullSecrets` for private registry access.
 
-The agent image passes the 320-test regression suite. The Docker backend has also passed B200 model → compile → eval → profile validation, GPU isolation, timeout, worker recovery, Master restart and cleanup checks. Follow the deployment checks for your own environment.
+The agent image passes the 320-test regression suite. The Docker backend has also passed SM100 GPUs model → compile → eval → profile validation, GPU isolation, timeout, worker recovery, Master restart and cleanup checks. Follow the deployment checks for your own environment.
 
 ## Install
 
@@ -90,7 +90,7 @@ The KODA model weights (ckpt140) are hosted on [Hugging Face](https://huggingfac
 | Target evaluation GPU | Controller YAML | CUDA compile architecture |
 | --- | --- | --- |
 | H100 / H20 (Hopper) | [controller_h.yaml](configs/controller_h.yaml) | `9.0` |
-| B200 (Blackwell) | [controller_b.yaml](configs/controller_b.yaml) | `10.0a` |
+| SM100 GPUs| [controller_b.yaml](configs/controller_b.yaml) | `10.0a` |
 
 These are two hardware variants of the same Qwen3.6/ckpt140 controller, not different agent modes. Both use temperature `0.6`, top-p `0.95`, top-k `20`, min-p `0`, presence penalty `0`, repetition penalty `1`, thinking enabled, 65,536 maximum output tokens, and a 262,144-token conversation budget. The full-run budgets are 70 rounds, 50 evaluation submissions and 7,200 seconds, with dynamic output sizing and a 10,240-token margin.
 
@@ -110,7 +110,7 @@ Copy [the example configuration](configs/controller_h.yaml) to `eval.local.yaml`
 The override clears inherited GPU resource requests so that the server's default GPU cluster/template is used. Configure resource keys explicitly if your server requires cluster routing. Sampling, reasoning, and output-token options depend on the provider; the example avoids provider-specific thinking flags. Set them explicitly for reproducible model comparisons.
 
 ```bash
-export CONTROLLER_CONFIG=configs/controller_h.yaml  # B200: configs/controller_b.yaml
+export CONTROLLER_CONFIG=configs/controller_h.yaml  # SM100 GPUs: configs/controller_b.yaml
 chmod 600 eval.local.yaml
 export SANDBOX_URL='http://YOUR_SANDBOX_SERVER:PORT'
 export SANDBOX_IMAGE='docker.io/loongsage/koda:sandbox-20261118-clean'
